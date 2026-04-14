@@ -23,9 +23,11 @@
 import logging
 import os
 import sys
+from copy import deepcopy
 
 from celery.schedules import crontab
 from flask_caching.backends.filesystemcache import FileSystemCache
+from superset.config import TALISMAN_DEV_CONFIG as DEFAULT_TALISMAN_DEV_CONFIG
 
 logger = logging.getLogger()
 
@@ -140,6 +142,12 @@ SQL_MAX_ROW = 500000
 SAMPLES_ROW_LIMIT = 500000
 
 HTML_SANITIZATION = False
+
+# Docker local development serves frontend bundles that rely on eval-based refresh
+# tooling. Align the effective CSP with Superset's dev policy so login and SPA
+# entrypoints work when the container does not run with debug enabled.
+TALISMAN_CONFIG = deepcopy(DEFAULT_TALISMAN_DEV_CONFIG)
+
 #
 # Optionally import superset_config_docker.py (which will have been included on
 # the PYTHONPATH) in order to allow for local settings to be overridden

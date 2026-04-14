@@ -28,11 +28,17 @@ x-superset-user: &superset-user root
 x-superset-volumes: &superset-volumes
   # /app/pythonpath_docker will be appended to the PYTHONPATH in the final container
   - ./docker:/app/docker
+  - ./docker/pythonpath_dev:/app/pythonpath
   - ./superset:/app/superset
   - ./superset-core:/app/superset-core
   - ./superset-frontend:/app/superset-frontend
   - superset_home:/app/superset_home
   - ./tests:/app/tests
+  - superset_data:/app/data
+x-superset-runtime-volumes: &superset-runtime-volumes
+  - ./docker:/app/docker
+  - ./docker/pythonpath_dev:/app/pythonpath
+  - superset_home:/app/superset_home
   - superset_data:/app/data
 x-common-build: &common-build
   context: .
@@ -40,7 +46,7 @@ x-common-build: &common-build
   cache_from:
     - apache/superset-cache:3.10-slim-trixie
   args:
-    DEV_MODE: "true"
+    DEV_MODE: "false"
     INCLUDE_CHROMIUM: ${INCLUDE_CHROMIUM:-false}
     INCLUDE_FIREFOX: ${INCLUDE_FIREFOX:-false}
     BUILD_TRANSLATIONS: ${BUILD_TRANSLATIONS:-false}
@@ -92,7 +98,7 @@ services:
         required: false
     build:
       <<: *common-build
-    command: ["/app/docker/docker-bootstrap.sh", "app"]
+    command: ["/app/docker/docker-bootstrap.sh", "app-gunicorn"]
     restart: unless-stopped
     ports:
       - ${SUPERSET_PORT:-8088}:8088
@@ -104,10 +110,11 @@ services:
     depends_on:
       superset-init:
         condition: service_completed_successfully
-    volumes: *superset-volumes
+    volumes: *superset-runtime-volumes
 
   superset-websocket:
     build: ./superset-websocket
+    restart: unless-stopped
     ports:
       - ${WEBSOCKET_PORT:-8080}:8080
     extra_hosts:
@@ -153,11 +160,13 @@ services:
       redis:
         condition: service_started
     user: *superset-user
-    volumes: *superset-volumes
+    volumes: *superset-runtime-volumes
     healthcheck:
       disable: true
 
   superset-node:
+    profiles:
+      - devtools
     build:
       context: .
       target: superset-node
@@ -178,7 +187,7 @@ services:
       # Webpack dev server must bind to 0.0.0.0 to be accessible from outside the container
       WEBPACK_DEVSERVER_HOST: "0.0.0.0"
     ports:
-      - "127.0.0.1:${NODE_PORT:-9000}:9000"  # exposing the dynamic webpack dev server
+      - "${NODE_PORT:-9000}:9000"  # expose webpack dev server for remote browser websocket
     command: ["/app/docker/docker-frontend.sh"]
     env_file:
       - path: docker/.env # default
@@ -203,7 +212,7 @@ services:
       superset-init:
         condition: service_completed_successfully
     user: *superset-user
-    volumes: *superset-volumes
+    volumes: *superset-runtime-volumes
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
@@ -225,7 +234,7 @@ services:
     depends_on:
       - superset-worker
     user: *superset-user
-    volumes: *superset-volumes
+    volumes: *superset-runtime-volumes
     healthcheck:
       disable: true
 

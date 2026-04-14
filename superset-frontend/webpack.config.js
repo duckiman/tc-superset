@@ -60,12 +60,15 @@ const {
   nameChunks = false,
 } = parsedArgs;
 
+const effectiveMode =
+  process.env.NODE_ENV || process.env.BABEL_ENV || mode || 'development';
+
 // Precedence: CLI args > env vars > defaults
 const devserverPort = cliPort || process.env.WEBPACK_DEVSERVER_PORT || 9000;
 const devserverHost =
   cliHost || process.env.WEBPACK_DEVSERVER_HOST || '127.0.0.1';
 
-const isDevMode = mode !== 'production';
+const isDevMode = effectiveMode !== 'production';
 const isDevServer = process.argv[1]?.includes('webpack-dev-server') ?? false;
 
 // TypeScript checker memory limit (in MB)
@@ -666,16 +669,7 @@ if (isDevMode) {
     liveReload: false,
     host: devserverHost,
     port: devserverPort,
-    allowedHosts: [
-      ...new Set([
-        devserverHost,
-        'localhost',
-        '.localhost',
-        '127.0.0.1',
-        '::1',
-        '.local',
-      ]),
-    ],
+    allowedHosts: 'all',
     proxy: [() => proxyConfig],
     client: {
       overlay: {
@@ -687,7 +681,7 @@ if (isDevMode) {
       webSocketURL: {
         hostname: '0.0.0.0',
         pathname: '/ws',
-        port: 0,
+        port: devserverPort,
       },
     },
     static: {
