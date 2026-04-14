@@ -48,7 +48,7 @@ const defaultCustomRange: CustomRangeType = {
   sinceDatetime: SEVEN_DAYS_AGO.setDate(
     SEVEN_DAYS_AGO.getDate() - 7,
   ).toString(),
-  sinceMode: 'relative',
+  sinceMode: 'specific', // Đổi từ 'relative' sang 'specific'
   sinceGrain: 'day',
   sinceGrainValue: -7,
   untilDatetime: MIDNIGHT.toString(),

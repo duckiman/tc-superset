@@ -40,13 +40,30 @@ export const ISO8601_AND_CONSTANT = RegExp(
 const SPECIFIC_MODE = ['specific', 'today', 'now'];
 
 export const dttmToDayjs = (dttm: string): Dayjs => {
+  console.log('dttmToDayjs input:', dttm, 'type:', typeof dttm);
   if (dttm === 'now') {
     return extendedDayjs().utc().startOf('second');
   }
   if (dttm === 'today') {
     return extendedDayjs().utc().startOf('day');
   }
-  return extendedDayjs(dttm);
+  
+  // Kiểm tra nếu dttm là empty hoặc invalid
+  if (!dttm || dttm.trim() === '') {
+    console.warn('dttmToDayjs: Empty or invalid input, using today as default');
+    return extendedDayjs().utc().startOf('day');
+  }
+  
+  const result = extendedDayjs(dttm);
+  console.log('dttmToDayjs result:', result.format(), 'isValid:', result.isValid());
+  
+  // Nếu parse không hợp lệ, trả về today
+  if (!result.isValid()) {
+    console.warn('dttmToDayjs: Invalid date parsed, using today as default');
+    return extendedDayjs().utc().startOf('day');
+  }
+  
+  return result;
 };
 
 export const dttmToString = (dttm: string): string =>

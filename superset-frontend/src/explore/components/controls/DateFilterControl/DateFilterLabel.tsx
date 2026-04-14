@@ -244,7 +244,7 @@ export default function DateFilterLabel(props: DateFilterControlProps) {
 
   function onOpen() {
     setTimeRangeValue(value);
-    setFrame(guessedFrame);
+    setFrame('Custom'); // Luôn mở ở chế độ Custom
     setShow(true);
     onOpenPopover();
   }
@@ -273,37 +273,12 @@ export default function DateFilterLabel(props: DateFilterControlProps) {
 
   const overlayContent = (
     <ContentStyleWrapper>
-      <div className="control-label">{t('Range type')}</div>
-      <StyledRangeType
-        ariaLabel={t('Range type')}
-        options={FRAME_OPTIONS}
-        value={frame}
-        onChange={onChangeFrame}
+      {/* Ẩn dropdown Range type, luôn sử dụng Custom Frame */}
+      <CustomFrame
+        value={timeRangeValue}
+        onChange={setTimeRangeValue}
+        isOverflowingFilterBar={isOverflowingFilterBar}
       />
-      {frame !== 'No filter' && <Divider />}
-      {frame === 'Common' && (
-        <CommonFrame value={timeRangeValue} onChange={setTimeRangeValue} />
-      )}
-      {frame === 'Calendar' && (
-        <CalendarFrame value={timeRangeValue} onChange={setTimeRangeValue} />
-      )}
-      {frame === 'Current' && (
-        <CurrentCalendarFrame
-          value={timeRangeValue}
-          onChange={setTimeRangeValue}
-        />
-      )}
-      {frame === 'Advanced' && (
-        <AdvancedFrame value={timeRangeValue} onChange={setTimeRangeValue} />
-      )}
-      {frame === 'Custom' && (
-        <CustomFrame
-          value={timeRangeValue}
-          onChange={setTimeRangeValue}
-          isOverflowingFilterBar={isOverflowingFilterBar}
-        />
-      )}
-      {frame === 'No filter' && <div data-test={DateFilterTestKey.NoFilter} />}
       <Divider />
       <div>
         <div className="section-title">{t('Actual time range')}</div>
